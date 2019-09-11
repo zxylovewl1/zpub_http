@@ -4,9 +4,11 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_des/FlutterDes.dart';
+import 'package:zpub_bas/zpub_bas.dart';
 import 'package:zpub_http/com/zerogis/zpubhttp/constant/HttpKeyValueConstant.dart';
 import 'package:zpub_http/com/zerogis/zpubhttp/constant/UrlConstant.dart';
 import 'package:zpub_http/com/zerogis/zpubhttp/http/Protocol.dart';
+import 'package:zpub_http/com/zerogis/zpubhttp/method/TokenMethod.dart';
 import 'package:zpub_http/com/zerogis/zpubhttp/uitl/HttpLog.dart';
 
 /*
@@ -134,7 +136,8 @@ class HttpProtocol extends Protocol
 
   void addSignedParams()
   {
-    mParams[HttpKeyValueConstant.PARAM_SESSIONID] = HttpKeyValueConstant.VALUE_TOKEN;
+    mParams[HttpKeyValueConstant.PARAM_SESSIONID] = CxTextUtil.isEmpty(HttpKeyValueConstant.VALUE_TOKEN) ?
+    TokenMethod.getTokenFromProperty() : HttpKeyValueConstant.VALUE_TOKEN;
     HttpKeyValueConstant.VALUE_COUNT = HttpKeyValueConstant.VALUE_COUNT + 1;
     mParams[HttpKeyValueConstant.PARAM_COUNT] = HttpKeyValueConstant.VALUE_COUNT;
   }
@@ -241,7 +244,13 @@ class HttpProtocol extends Protocol
   void addHeader()
   {
     Map<String, dynamic> headers = mHttp.options.headers;
-    if (!isEmpty(HttpKeyValueConstant.VALUE_TOKEN))
+    String token = HttpKeyValueConstant.VALUE_TOKEN;
+    if (CxTextUtil.isEmpty(token))
+    {
+      token = TokenMethod.getTokenFromProperty();
+      HttpKeyValueConstant.VALUE_TOKEN = token;
+    }
+    if (!CxTextUtil.isEmpty(token))
     {
       headers[HttpKeyValueConstant.PARAM_TOKEN] = HttpKeyValueConstant.VALUE_TOKEN;
     }
@@ -352,17 +361,5 @@ class HttpProtocol extends Protocol
    */
   static void clearStaticData()
   {
-  }
-
-  /*
-   * 是否为空字符串<br/>
-   */
-  static bool isEmpty(String text)
-  {
-    if (text == null || text.isEmpty)
-    {
-      return true;
-    }
-    return false;
   }
 }
